@@ -1,0 +1,26 @@
+/* minimal style definitions */
+
+body {
+    bgcolor:white; 
+    font-family:helvetica;
+}
+
+/* form for changing rendering / animation parameters */
+div.ParamForm  {
+    width: 400px;
+    border-top: 2px solid gray; 
+    padding-top: 10px;
+    padding-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+/* table cell holding the parameter forms */
+td.FormCell {
+    vertical-align: top; 
+    background-color: #CCCCCC;
+}
+
+/* the canvas element */
+#webgl_canvas {
+}

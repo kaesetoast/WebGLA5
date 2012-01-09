@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weltanschauung</title>
+    
+    <!-- style sheet -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    
+    <!-- some utility libraries -->
+    <script type="text/javascript" src="gl-matrix.js"></script>
+    <script type="text/javascript" src="util.js"></script>
+    <script type="text/javascript" src="program.js"></script>
+    <script type="text/javascript" src="buffer.js"></script>
+    <script type="text/javascript" src="camera.js"></script>
+    <script type="text/javascript" src="scene.js"></script>
+    <script type="text/javascript" src="explorer.js"></script>
+    <script type="text/javascript" src="shapes.js"></script>
+    <script type="text/javascript" src="light.js"></script>
+    <script type="text/javascript" src="material.js"></script>
+    <script type="text/javascript" src="texture.js"></script>
+    <script type="text/javascript" src="simulation.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    
+    <!-- vertex shader source code -->
+    <script id="vert_shader" type="x-shader/x-vertex">
+        attribute vec3 vertexPosition; 
+        attribute vec3 vertexNormal;
+
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        
+        varying vec4 ecPosition; 
+        varying vec3 ecNormal;
+        
+        void main() { 
+        
+            // transform vertex position and normal into eye coordinates 
+            // for lighting calculations
+            ecPosition   = modelViewMatrix * vec4(vertexPosition,1.0);
+            ecNormal     = normalize(normalMatrix*vertexNormal);
+            
+            // set the fragment position in clip coordinates
+            gl_Position  = projectionMatrix * ecPosition;
+            
+        }
+    </script>
+
+    <!-- fragment shader source code -->
+    <script id="frag_shader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        varying vec4  ecPosition; 
+        varying vec3  ecNormal; 
+
+        // Transformation
+        uniform mat4  modelViewMatrix;
+        uniform mat4  projectionMatrix;
+
+        // Ambient Light
+        uniform vec3  ambientLight;
+
+        // Material
+        struct Material {
+            vec3  kAmbient;
+            vec3  kDiffuse;
+            vec3  kSpecular;
+            float shininess;
+        };
+        uniform Material material; 
+
+        // Light Source Data for a directional light       
+        struct DirectionalLightSource {
+        
+            vec3 direction; 
+            vec3 color;     
+            
+        } ;
+        uniform DirectionalLightSource light;
+
+        /* 
+            Calculate surface color based on Blinn-Phong illumination model.
+            - pos:  position of point on surface, in eye coordinates
+            - n:    surface normal at pos
+            - v:    direction pointing towards the viewer, in eye coordinates
+        */ 
+        vec3 blinnPhong(vec3 pos, vec3 n, vec3 v) {
+        
+            // ambient part
+            vec3 ambient = material.kAmbient * ambientLight;
+        
+            // check viewing direction - is this back-facing?
+            float ndotv = dot(n,v);
+            if(ndotv<0.0)
+                return vec3(0,0,0); // backface
+
+            // vector from light to current point
+            vec3 l = light.direction;
+            
+            // cos of angle between light and surface. 0 = light behind surface
+            float ndotl = max( dot(n,-l), 0.0); 
+
+            // diffuse contribution
+            vec3 diffuse = material.kDiffuse * light.color * ndotl;
+            
+            // half way vector between light and viewer
+            vec3 h = normalize(v-l);
+
+            // angle between half way vector and surface normal
+            float ndoth = dot(n,h);
+
+            // specular contribution
+            vec3 specular = material.kSpecular * light.color * pow(ndoth, material.shininess);
+                
+            // return sum of all contributions
+            return ambient + diffuse + specular;
+    
+        }
+        
+        
+       void main() { 
+        
+            // normalize normal after projection
+            vec3 normalEC = normalize(ecNormal);
+
+            // do we use a perspective or an orthogonal projection matrix?
+            bool usePerspective = projectionMatrix[2][3] != 0.0;
+            
+            // for perspective mode, the viewing direction (in eye coords) points 
+            // from the vertex to the origin (0,0,0) --> use -ecPosition as direction.
+            // for orthogonal mode, the viewing direction is simply (0,0,1)
+            vec3 viewdirEC = usePerspective? normalize(-ecPosition.xyz) : vec3(0,0,1);
+            
+            // calculate color using Blinn-Phong function
+            vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+
+            gl_FragColor = vec4(color, 1.0);
+                                
+        }    
+    </script>
+    
+</head>
+
+<body>
+
+<!-- layout table to place canvas and HTML form side by side -->
+<table border="0">
+  <tr>
+    <td>
+      <!-- the canvas in which to draw using WebGL -->
+      <canvas id="webgl_canvas" width="600" height="600"></canvas>
+    </td>
+    <td class="FormCell">
+
+
+<!-- Form for animation parameters -->
+<div id="animForm" class="ParamForm" >
+  <b>Darstellung &amp; Animation</b>
+  <br><p>
+    <!-- an HTML form to define the camera/projection parameters -->
+    <form name="animationParameters" action="" method="post">
+        <input name="renderRing" type="checkbox" checked onclick="updateAnimationParams()" >
+        &Auml;quator-Ring anzeigen
+      <p>
+        <input name="showLights" type="checkbox" onclick="updateAnimationParams()" >
+        In der Nacht Lichter darstellen
+      <p>
+        <input name="showClouds" type="checkbox" onclick="updateAnimationParams()" >
+        Wolkenschichten
+      <p>
+        <input name="animateSun" type="checkbox" checked onclick="startStopSunAnimation()" >
+        Sonne wandert mit  
+        <input name="sunSpeed" type="text" size="3" maxlength="3" value="20" 
+               onchange="updateAnimationParams()"> Grad/s um den &Auml;quator<br>
+      <p>
+        Darzustellender Monat:
+        <select name="month" size="1" onchange="updateMonth()">
+            <option value="01" selected="selected">Januar</option>
+            <option value="02">Februar</option>
+            <option value="03">M&auml;rz</option>
+            <option value="04">April</option>
+            <option value="05">May</option>
+            <option value="06">Juni</option>
+            <option value="07">Juli</option>
+            <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Dezember</option>
+        </select>        
+    
+    </form>
+</div> <!-- end of container -->
+
+<!-- form with projection parameters -->
+<div id="projForm" class="ParamForm">
+  <b>Kamera / Projektion</b>
+  <br><p>
+    <!-- an HTML form to define the camera/projection parameters -->
+    <form name="cameraParameters" action="" method="post">
+      <table border="0">
+        <tr>
+          <td>
+            <input name="projection_type" type="radio" value="perspective" checked 
+                    onclick="updateCameraParams()" >
+          </td><td>
+            Perspektivische Projektion
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            &Ouml;ffnungswinkel: <input name="fovy" type="text" size="3" maxlength="3" value="60" 
+                                        onchange="updateCameraParams()"> Grad<br>
+            Tiefenbereich (Z) von: <input name="znear" type="text" size="10" maxlength="10" 
+                                        value="0.0001" onchange="updateCameraParams()">
+            bis <input name="zfar" type="text" size="10" maxlength="10" value="1000" 
+                        onchange="updateCameraParams()">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input name="projection_type" type="radio" value="orthographic" 
+                    onclick="updateCameraParams()">
+          </td><td>
+            Orthographische Projektion
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            <table border="0">
+                <tr>
+                    <td>links:</td>  
+                    <td><input name="left" type="text" size="10" maxlength="10" value="-1" 
+                                        onchange="updateCameraParams()"></td>
+                    <td>rechts:</td>  
+                    <td><input name="right" type="text" size="10" maxlength="10" value="1" 
+                                        onchange="updateCameraParams()"></td>
+                </tr>
+                <tr>
+                    <td>unten:</td>  
+                    <td><input name="bot" type="text" size="10" maxlength="10" value="-1" 
+                                        onchange="updateCameraParams()"></td>
+                    <td>oben:</td>  
+                    <td><input name="top" type="text" size="10" maxlength="10" value="1" 
+                                        onchange="updateCameraParams()"></td>
+                </tr>
+                <tr>
+                    <td>vorne:</td>  
+                    <td><input name="front" type="text" size="10" maxlength="10" value="0.0001" 
+                                        onchange="updateCameraParams()"></td>
+                    <td>hinten:</td>  
+                    <td><input name="back" type="text" size="10" maxlength="10" value="1000" 
+                                        onchange="updateCameraParams()"></td>
+                </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </form>
+</div> <!-- end of container -->
+
+    <!-- end of layout table cell -->
+    </td>
+  </tr>
+</table>
+
+<p>
+Das Bildmaterial f&uuml;r diese Applikation wurde durch das Projekt <i>Earth Observatory</i> der NASA bereitgestellt. Siehe <a target="_blank" href="http://earthobservatory.nasa.gov/Features/BlueMarble/">Blue Marble: Next Generation</a>.   
+
+      
+</body>
+
+</html>
