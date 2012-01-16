@@ -125,7 +125,8 @@ drawScene = function() {
 	if(this.showEquator)
 		this.equatorRing.shape.draw(program);
 
-	// TODO: draw some more things!
+	// draw the earth
+	this.earth.shape.draw(program);
 
 }
 /*
