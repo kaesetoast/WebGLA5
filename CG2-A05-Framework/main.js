@@ -73,7 +73,7 @@ initScene = function() {
 	// material for the equator ring
 	this.equatorMaterial = new Material([0.4, 0.4, 0.4], [0.6, 0.0, 0.0], [0.4, 0.4, 0.4], 200);
 
-	// TODO: create the world sphere!
+	// create the world sphere
 	this.earth = new (gl, 0.5, [1, 1, 1], [1, 1, 0], mat4.identity);
 }
 /*
