@@ -61,7 +61,6 @@ initScene = function() {
     var program = this.getProgram();
     var gl = this.getGL();
     
-    // this texture will be loaded automatically through the UI
     this.daylightTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
         
     // directional sunlight, defined in world coordinates
@@ -76,6 +75,8 @@ initScene = function() {
     this.equatorMaterial = new Material([0.4, 0.4, 0.4], [0.6, 0.0, 0.0], [0.4, 0.4, 0.4], 200);
     
     // TODO: create the world sphere!
+    this.earth = new (gl, 0.5, [1, 1, 1], [1, 1, 0], mat4.identity(true));
+    
 }
     
 /*

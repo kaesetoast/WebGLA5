@@ -285,5 +285,80 @@ Torus = function(gl, radius, radius2, N, M, col1, col2) {
    
 }        
     
+/*
+ * Class: Sphere
+ */
 
+Sphere = function(gl, radius, color1, color2, transformationMatrix) {
+	
+	var nrLongitudinalLines = 11; // # Längengrade
+	var nrLatitudinalLines = nrLongitudinalLines * 2; // # Breitengrade
+	
+	var intersectionPointsXYZ = [];
+	for (var longitude = 0; longitude <= nrLongitudinalLines; longitude++) {
+		var alpha = (longitude * Math.PI) / nrLongitudinalLines;
+		var sinAlpha = Math.sin(alpha);
+		var cosAlpha = Math.cos(alpha);
+		
+		for (var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
+			var beta = (latitude * 2 * Math.PI) / nrLatitudinalLines;
+			var sinBeta = Math.sin(beta);
+			var cosBeta = Math.cos(beta);
+			
+			var x = radius * sinBeta * cosAlpha;
+			var y = radius * cosBeta;
+			var z = radius * sinAlpha * sinBeta;
+			
+			intersectionPointsXYZ.push(x);
+			intersectionPointsXYZ.push(y);
+			intersectionPointsXYZ.push(z);
+		}
+	}
+	
+	var indicesVertex = [];
+	var colorPerVertex = [];
+	
+	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
+		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
+			
+			var one = (longitude * (nrLatitudinalLines * 3)) + latitude * 3;
+			var two = one + nrLatitudinalLines * 3;
+			var three = one + 3;
+			var four = two + 3;
+			
+			indicesVertex.push(one);
+			indicesVertex.push(two);
+			indicesVertex.push(three);
+			
+			indicesVertex.push(two);
+			indicesVertex.push(three);
+			indicesVertex.push(four);
+			
+			for (var i = 0; i < 18; i++) {
+				if ((latitude + longitude) % 2 == 0) {
+					colorPerVertex.push(color1[i%3]);
+				} else {
+					colorPerVertex.push(color2[i%3]);
+				}
+			}
+		}
+	}
+	
+	var addressedVerticesXYZ = [];
+	for (var i = 0; i < indicesVertex.length; i++) {
+		var index = indicesVertex[i];
+		
+		addressedVerticesXYZ.push(intersectionPointsXYZ[index]);
+		addressedVerticesXYZ.push(intersectionPointsXYZ[index + 1]);
+		addressedVerticesXYZ.push(intersectionPointsXYZ[index + 2]);
+	}
+	
+	vpositionXYZ = new Float32Array(addressedVerticesXYZ);
+	vcolor = new Float32Array(colorPerVertex);
+	
+	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vpositionXYZ.length / 3, transformationMatrix);
+	
+	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vpositionXYZ);
+	this.shape.addVertexAttribute(gl, "vertexColor",    gl.FLOAT, 3, vcolor);
+}
 
