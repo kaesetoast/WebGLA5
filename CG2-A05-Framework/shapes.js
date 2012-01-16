@@ -336,6 +336,7 @@ Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vpositionXYZ.length / 3, transformationMatrix);
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vpositionXYZ);
+	// TODO: brauchen wir die fucking colors?
 	this.shape.addVertexAttribute(gl, "vertexColor", gl.FLOAT, 3, vcolor);
 	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormalXYZ);
 }
