@@ -331,10 +331,11 @@ Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 	}
 	vpositionXYZ = new Float32Array(addressedVerticesXYZ);
 	vcolor = new Float32Array(colorPerVertex);
+	vnormalXYZ = new Float32Array(normalXYZ);
 
 	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vpositionXYZ.length / 3, transformationMatrix);
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vpositionXYZ);
 	this.shape.addVertexAttribute(gl, "vertexColor", gl.FLOAT, 3, vcolor);
-	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, normalXYZ);
+	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormalXYZ);
 }
