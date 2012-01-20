@@ -131,6 +131,9 @@ drawScene = function() {
 	if(this.showEquator)
 		this.equatorRing.shape.draw(program);
 
+	// set illuminatin function
+	program.setUniform("usePhong", "int", 0, true);
+
 	// activate the material for rendering the earth
 	this.earthMaterial.setUniforms(program, mv);
 
