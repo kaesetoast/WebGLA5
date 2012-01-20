@@ -263,7 +263,7 @@ Sphere = function(gl, radius, transformationMatrix) {
 	var nrLatitudinalLines = nrLongitudinalLines * 2;
 	// # Breitengrade
 
-	var intersectionPointsXYZ = [];
+	var vertexPositionPerIntersectionXYZ = [];
 	for(var longitude = 0; longitude <= nrLongitudinalLines; longitude++) {
 		var alpha = (longitude * Math.PI) / nrLongitudinalLines;
 		var sinAlpha = Math.sin(alpha);
@@ -278,13 +278,13 @@ Sphere = function(gl, radius, transformationMatrix) {
 			var y = radius * cosBeta;
 			var z = radius * sinAlpha * sinBeta;
 
-			intersectionPointsXYZ.push(x);
-			intersectionPointsXYZ.push(y);
-			intersectionPointsXYZ.push(z);
+			vertexPositionPerIntersectionXYZ.push(x);
+			vertexPositionPerIntersectionXYZ.push(y);
+			vertexPositionPerIntersectionXYZ.push(z);
 		}
 	}
 
-	var indicesVertex = [];
+	var quadIndicesVERTEX = [];
 	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
 		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
 
@@ -293,38 +293,37 @@ Sphere = function(gl, radius, transformationMatrix) {
 			var three = one + 3;
 			var four = two + 3;
 
-			indicesVertex.push(one);
-			indicesVertex.push(two);
-			indicesVertex.push(three);
+			quadIndicesVERTEX.push(one);
+			quadIndicesVERTEX.push(two);
+			quadIndicesVERTEX.push(three);
 
-			indicesVertex.push(two);
-			indicesVertex.push(three);
-			indicesVertex.push(four);
+			quadIndicesVERTEX.push(two);
+			quadIndicesVERTEX.push(three);
+			quadIndicesVERTEX.push(four);
 		}
 	}
 
-	var addressedVerticesXYZ = [];
-	var normalXYZ = [];
-	for(var i = 0; i < indicesVertex.length; i++) {
-		var index = indicesVertex[i];
+	var quadVertexPositionXYZ = [];
+	var quadNormalXYZ = [];
+	for(var i = 0; i < quadIndicesVERTEX.length; i++) {
+		var index = quadIndicesVERTEX[i];
 
-		addressedVerticesXYZ.push(intersectionPointsXYZ[index]);
-		addressedVerticesXYZ.push(intersectionPointsXYZ[index + 1]);
-		addressedVerticesXYZ.push(intersectionPointsXYZ[index + 2]);
+		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index]);
+		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index + 1]);
+		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index + 2]);
 
-		var normal = vec3.create([intersectionPointsXYZ[index], intersectionPointsXYZ[index + 1], intersectionPointsXYZ[index + 2]]);
+		var normal = vec3.create([vertexPositionPerIntersectionXYZ[index], vertexPositionPerIntersectionXYZ[index + 1], vertexPositionPerIntersectionXYZ[index + 2]]);
 		normal = vec3.normalize(normal);
 
-		normalXYZ.push(normal[0]);
-		normalXYZ.push(normal[1]);
-		normalXYZ.push(normal[2]);
+		quadNormalXYZ.push(normal[0]);
+		quadNormalXYZ.push(normal[1]);
+		quadNormalXYZ.push(normal[2]);
 	}
-	
-	vpositionXYZ = new Float32Array(addressedVerticesXYZ);
-	vnormalXYZ = new Float32Array(normalXYZ);
+	vposition = new Float32Array(quadVertexPositionXYZ);
+	vnormal = new Float32Array(quadNormalXYZ);
 
-	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vpositionXYZ.length / 3, transformationMatrix);
+	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vposition.length / 3, transformationMatrix);
 
-	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vpositionXYZ);
-	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormalXYZ);
+	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vposition);
+	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormal);
 }
