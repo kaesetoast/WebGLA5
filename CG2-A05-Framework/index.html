@@ -54,7 +54,7 @@
         varying vec4  ecPosition; 
         varying vec3  ecNormal; 
 
-		uniform int illumFunction;
+		uniform int usePhong;
 
         // Transformation
         uniform mat4  modelViewMatrix;
@@ -141,7 +141,7 @@
             //vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
             
             vec3 color;
-            if(illumFunction < 0) {
+            if(usePhong == 1) {
             	color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
             } else {
             	color = illumWorld();
