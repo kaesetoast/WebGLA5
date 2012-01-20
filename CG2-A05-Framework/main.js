@@ -120,6 +120,9 @@ drawScene = function() {
 
 	// set sunlight to its current value (as defined by the simulation)
 	this.sunlight.setUniforms(program, mv);
+	
+	// set illuminatin function
+	program.setUniform("illumFunction", "int", -1, true);
 
 	// activate the material for rendering the equator
 	this.equatorMaterial.setUniforms(program, mv);

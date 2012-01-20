@@ -54,6 +54,8 @@
         varying vec4  ecPosition; 
         varying vec3  ecNormal; 
 
+		uniform int illumFunction;
+
         // Transformation
         uniform mat4  modelViewMatrix;
         uniform mat4  projectionMatrix;
@@ -118,6 +120,9 @@
     
         }
         
+        vec3 illumWorld() {
+        	return vec3(0,1,0);
+        }
         
        void main() { 
         
@@ -133,7 +138,14 @@
             vec3 viewdirEC = usePerspective? normalize(-ecPosition.xyz) : vec3(0,0,1);
             
             // calculate color using Blinn-Phong function
-            vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+            //vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+            
+            vec3 color;
+            if(illumFunction < 0) {
+            	color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+            } else {
+            	color = illumWorld();
+            }
 
             gl_FragColor = vec4(color, 1.0);
                                 
