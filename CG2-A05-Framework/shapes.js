@@ -258,7 +258,7 @@ Torus = function(gl, radius, radius2, N, M, col1, col2) {
  */
 Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 
-	var nrLongitudinalLines = 11;
+	var nrLongitudinalLines = 21;
 	// # Längengrade
 	var nrLatitudinalLines = nrLongitudinalLines * 2;
 	// # Breitengrade
