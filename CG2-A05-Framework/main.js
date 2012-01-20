@@ -74,7 +74,7 @@ initScene = function() {
 	this.equatorMaterial = new Material([0.4, 0.4, 0.4], [0.6, 0.0, 0.0], [0.4, 0.4, 0.4], 200);
 
 	// create the world sphere
-	this.earth = new Sphere(gl, 0.5, [1, 1, 1], [1, 1, 0], mat4.identity());
+	this.earth = new Sphere(gl, 0.5, mat4.identity());
 	
 	// material for the earth
 	this.earthMaterial = new Material([0.5, 0.5, 0.5], [0.0, 0.0, 0.6], [0.5, 0.5, 0.5], 1000);

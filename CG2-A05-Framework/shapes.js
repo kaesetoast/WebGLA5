@@ -256,7 +256,7 @@ Torus = function(gl, radius, radius2, N, M, col1, col2) {
 /*
  * Class: Sphere
  */
-Sphere = function(gl, radius, color1, color2, transformationMatrix) {
+Sphere = function(gl, radius, transformationMatrix) {
 
 	var nrLongitudinalLines = 21;
 	// # Längengrade
@@ -285,8 +285,6 @@ Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 	}
 
 	var indicesVertex = [];
-	var colorPerVertex = [];
-
 	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
 		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
 
@@ -302,14 +300,6 @@ Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 			indicesVertex.push(two);
 			indicesVertex.push(three);
 			indicesVertex.push(four);
-
-			for(var i = 0; i < 18; i++) {
-				if((latitude + longitude) % 2 == 0) {
-					colorPerVertex.push(color1[i % 3]);
-				} else {
-					colorPerVertex.push(color2[i % 3]);
-				}
-			}
 		}
 	}
 
@@ -329,14 +319,12 @@ Sphere = function(gl, radius, color1, color2, transformationMatrix) {
 		normalXYZ.push(normal[1]);
 		normalXYZ.push(normal[2]);
 	}
+	
 	vpositionXYZ = new Float32Array(addressedVerticesXYZ);
-	vcolor = new Float32Array(colorPerVertex);
 	vnormalXYZ = new Float32Array(normalXYZ);
 
 	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vpositionXYZ.length / 3, transformationMatrix);
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vpositionXYZ);
-	// TODO: brauchen wir die fucking colors?
-	this.shape.addVertexAttribute(gl, "vertexColor", gl.FLOAT, 3, vcolor);
 	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormalXYZ);
 }
