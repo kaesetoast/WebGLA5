@@ -288,6 +288,7 @@ Sphere = function(gl, radius, transformationMatrix) {
 	// Daten an den Schnittpunkten von Längen- und Breitengraden sammeln.
 	var vertexPositionDataXYZ = [];
 	var vertexNormalDataXYZ = [];
+	var vertexTextureDataST = [];
 	for(var longitude = 0; longitude <= nrLongitudinalLines; longitude++) {
 		var alpha = (longitude * Math.PI) / nrLongitudinalLines;
 		var sinAlpha = Math.sin(alpha);
@@ -305,6 +306,9 @@ Sphere = function(gl, radius, transformationMatrix) {
 			var normal = vec3.create([x, y, z]);
 			normal = vec3.normalize(normal);
 
+			var s = 1 - (latitude / nrLatitudinalLines);
+			var t = 1 - (longitude / nrLongitudinalLines);
+
 			vertexPositionDataXYZ.push(x);
 			vertexPositionDataXYZ.push(y);
 			vertexPositionDataXYZ.push(z);
@@ -312,27 +316,33 @@ Sphere = function(gl, radius, transformationMatrix) {
 			vertexNormalDataXYZ.push(normal[0]);
 			vertexNormalDataXYZ.push(normal[1]);
 			vertexNormalDataXYZ.push(normal[2]);
+
+			vertexTextureDataST.push(s);
+			vertexTextureDataST.push(t);
 		}
 	}
 
 	// Quads
 	var vertexPositionQuadXYZ = [];
 	var vertexNormalQuadXYZ = [];
+	var vertexTextureQuadST = [];
 	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
 		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
 
 			this.quads(longitude, latitude, 3, vertexPositionQuadXYZ, vertexPositionDataXYZ);
 			this.quads(longitude, latitude, 3, vertexNormalQuadXYZ, vertexNormalDataXYZ);
+			this.quads(longitude, latitude, 2, vertexTextureQuadST, vertexTextureDataST);
 		}
 	}
 
 	// Irgendwie braucht der Shader Float32Array
 	vposition = new Float32Array(vertexPositionQuadXYZ);
 	vnormal = new Float32Array(vertexNormalQuadXYZ);
+	vtexcoord = new Float32Array(vertexTextureQuadST);
 
 	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vposition.length / 3, transformationMatrix);
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vposition);
 	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormal);
-
+	this.shape.addVertexAttribute(gl, "vertexTexCoord", gl.FLOAT, 2, vtexcoord);
 }
