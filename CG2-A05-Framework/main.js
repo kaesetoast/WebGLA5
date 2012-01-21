@@ -75,7 +75,7 @@ initScene = function() {
 
 	// create the world sphere
 	this.earth = new Sphere(gl, 0.5, mat4.identity());
-	
+
 	// material for the earth
 	this.earthMaterial = new Material([0.5, 0.5, 0.5], [0.0, 0.0, 0.6], [0.5, 0.5, 0.5], 1000);
 }
@@ -120,7 +120,7 @@ drawScene = function() {
 
 	// set sunlight to its current value (as defined by the simulation)
 	this.sunlight.setUniforms(program, mv);
-	
+
 	// set illuminatin function
 	program.setUniform("usePhong", "int", 1, true);
 

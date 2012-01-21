@@ -263,7 +263,9 @@ Sphere = function(gl, radius, transformationMatrix) {
 	var nrLatitudinalLines = nrLongitudinalLines * 2;
 	// # Breitengrade
 
-	var vertexPositionPerIntersectionXYZ = [];
+	// Daten an den Schnittpunkten von Längen- und Breitengraden sammeln.
+	var vertexPositionDataXYZ = [];
+	var vertexNormalDataXYZ = [];
 	for(var longitude = 0; longitude <= nrLongitudinalLines; longitude++) {
 		var alpha = (longitude * Math.PI) / nrLongitudinalLines;
 		var sinAlpha = Math.sin(alpha);
@@ -278,52 +280,64 @@ Sphere = function(gl, radius, transformationMatrix) {
 			var y = radius * cosBeta;
 			var z = radius * sinAlpha * sinBeta;
 
-			vertexPositionPerIntersectionXYZ.push(x);
-			vertexPositionPerIntersectionXYZ.push(y);
-			vertexPositionPerIntersectionXYZ.push(z);
+			var normal = vec3.create([x, y, z]);
+			normal = vec3.normalize(normal);
+
+			vertexPositionDataXYZ.push(x);
+			vertexPositionDataXYZ.push(y);
+			vertexPositionDataXYZ.push(z);
+
+			vertexNormalDataXYZ.push(normal[0]);
+			vertexNormalDataXYZ.push(normal[1]);
+			vertexNormalDataXYZ.push(normal[2]);
 		}
 	}
 
-	var quadIndicesVERTEX = [];
+	// X-Koordinate jedes Vertex im Quad
+	var vertexPositionQuadX = [];
 	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
 		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
 
-			var one = (longitude * (nrLatitudinalLines * 3)) + latitude * 3;
-			var two = one + nrLatitudinalLines * 3;
-			var three = one + 3;
-			var four = two + 3;
-
-			quadIndicesVERTEX.push(one);
-			quadIndicesVERTEX.push(two);
-			quadIndicesVERTEX.push(three);
-
-			quadIndicesVERTEX.push(two);
-			quadIndicesVERTEX.push(three);
-			quadIndicesVERTEX.push(four);
+			quads(longitude, latitude, nrLatitudinalLines, 3, vertexPositionQuadX);
 		}
 	}
 
-	var quadVertexPositionXYZ = [];
-	var quadNormalXYZ = [];
-	for(var i = 0; i < quadIndicesVERTEX.length; i++) {
-		var index = quadIndicesVERTEX[i];
+	// X-Koordinate auf XYZ aufblasen
+	var vertexPositionQuadXYZ = [];
+	var vertexNormalQuadXYZ = [];
+	for(var i = 0; i < vertexPositionQuadX.length; i++) {
+		var x = vertexPositionQuadX[i];
 
-		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index]);
-		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index + 1]);
-		quadVertexPositionXYZ.push(vertexPositionPerIntersectionXYZ[index + 2]);
+		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x]);
+		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x + 1]);
+		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x + 2]);
 
-		var normal = vec3.create([vertexPositionPerIntersectionXYZ[index], vertexPositionPerIntersectionXYZ[index + 1], vertexPositionPerIntersectionXYZ[index + 2]]);
-		normal = vec3.normalize(normal);
-
-		quadNormalXYZ.push(normal[0]);
-		quadNormalXYZ.push(normal[1]);
-		quadNormalXYZ.push(normal[2]);
+		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x]);
+		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x + 1]);
+		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x + 2]);
 	}
-	vposition = new Float32Array(quadVertexPositionXYZ);
-	vnormal = new Float32Array(quadNormalXYZ);
+
+	// Irgendwie braucht der Shader Float32Array
+	vposition = new Float32Array(vertexPositionQuadXYZ);
+	vnormal = new Float32Array(vertexNormalQuadXYZ);
 
 	this.shape = new VertexBasedShape(gl, gl.TRIANGLES, vposition.length / 3, transformationMatrix);
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vposition);
 	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormal);
+}
+// Diese Methode adressiert Quads
+quads = function(longitude, latitude, nrLatitudinalLines, dimension, array) {
+	var one = (longitude * (nrLatitudinalLines * dimension)) + latitude * dimension;
+	var two = one + nrLatitudinalLines * dimension;
+	var three = one + dimension;
+	var four = two + dimension;
+
+	array.push(one);
+	array.push(two);
+	array.push(three);
+
+	array.push(two);
+	array.push(three);
+	array.push(four);
 }
