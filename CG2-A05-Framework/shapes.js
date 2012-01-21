@@ -263,6 +263,28 @@ Sphere = function(gl, radius, transformationMatrix) {
 	var nrLatitudinalLines = nrLongitudinalLines * 2;
 	// # Breitengrade
 
+	// Diese Methode "pusht" nach quadArray dimension viele Folgewerte von x.
+	// Im 3D also x, y und z.
+	this.pushXYZ = function(quadArray, x, dataArray, dimension) {
+		for(var i = 0; i < dimension; i++) {
+			quadArray.push(dataArray[x + i]);
+		}
+	}
+	// Diese Methode scheibt in quadArray Vertices, die nacheinander immer Quads ergeben.
+	this.quads = function(longitude, latitude, dimension, quadArray, dataArray) {
+		var one = (longitude * (nrLatitudinalLines * dimension)) + latitude * dimension;
+		var two = one + nrLatitudinalLines * dimension;
+		var three = one + dimension;
+		var four = two + dimension;
+
+		this.pushXYZ(quadArray, one, dataArray, dimension);
+		this.pushXYZ(quadArray, two, dataArray, dimension);
+		this.pushXYZ(quadArray, three, dataArray, dimension);
+
+		this.pushXYZ(quadArray, two, dataArray, dimension);
+		this.pushXYZ(quadArray, three, dataArray, dimension);
+		this.pushXYZ(quadArray, four, dataArray, dimension);
+	}
 	// Daten an den Schnittpunkten von Längen- und Breitengraden sammeln.
 	var vertexPositionDataXYZ = [];
 	var vertexNormalDataXYZ = [];
@@ -293,28 +315,15 @@ Sphere = function(gl, radius, transformationMatrix) {
 		}
 	}
 
-	// X-Koordinate jedes Vertex im Quad
-	var vertexPositionQuadX = [];
+	// Quads
+	var vertexPositionQuadXYZ = [];
+	var vertexNormalQuadXYZ = [];
 	for(var longitude = 0; longitude < nrLongitudinalLines; longitude++) {
 		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
 
-			quads(longitude, latitude, nrLatitudinalLines, 3, vertexPositionQuadX);
+			this.quads(longitude, latitude, 3, vertexPositionQuadXYZ, vertexPositionDataXYZ);
+			this.quads(longitude, latitude, 3, vertexNormalQuadXYZ, vertexNormalDataXYZ);
 		}
-	}
-
-	// X-Koordinate auf XYZ aufblasen
-	var vertexPositionQuadXYZ = [];
-	var vertexNormalQuadXYZ = [];
-	for(var i = 0; i < vertexPositionQuadX.length; i++) {
-		var x = vertexPositionQuadX[i];
-
-		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x]);
-		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x + 1]);
-		vertexPositionQuadXYZ.push(vertexPositionDataXYZ[x + 2]);
-
-		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x]);
-		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x + 1]);
-		vertexNormalQuadXYZ.push(vertexNormalDataXYZ[x + 2]);
 	}
 
 	// Irgendwie braucht der Shader Float32Array
@@ -325,19 +334,5 @@ Sphere = function(gl, radius, transformationMatrix) {
 
 	this.shape.addVertexAttribute(gl, "vertexPosition", gl.FLOAT, 3, vposition);
 	this.shape.addVertexAttribute(gl, "vertexNormal", gl.FLOAT, 3, vnormal);
-}
-// Diese Methode adressiert Quads
-quads = function(longitude, latitude, nrLatitudinalLines, dimension, array) {
-	var one = (longitude * (nrLatitudinalLines * dimension)) + latitude * dimension;
-	var two = one + nrLatitudinalLines * dimension;
-	var three = one + dimension;
-	var four = two + dimension;
 
-	array.push(one);
-	array.push(two);
-	array.push(three);
-
-	array.push(two);
-	array.push(three);
-	array.push(four);
 }

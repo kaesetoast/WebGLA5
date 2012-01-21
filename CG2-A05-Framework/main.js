@@ -61,6 +61,7 @@ initScene = function() {
 	var gl = this.getGL();
 
 	this.daylightTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
+	this.testWorldTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
 
 	// directional sunlight, defined in world coordinates
 	// this object will be manipulated directly by a simulation object
@@ -101,6 +102,9 @@ drawScene = function() {
 	gl.enable(gl.DEPTH_TEST);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	checkGLError(gl);
+
+	// set Sampler
+	this.testWorldTexture.makeActive(program, "testWorldSampler", 0);
 
 	// set projection matrix uniform shader variable
 	program.setUniform("projectionMatrix", "mat4", this.camera.eyeToClip(), true);

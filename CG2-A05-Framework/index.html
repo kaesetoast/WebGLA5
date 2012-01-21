@@ -26,6 +26,7 @@
     <script id="vert_shader" type="x-shader/x-vertex">
         attribute vec3 vertexPosition; 
         attribute vec3 vertexNormal;
+        attribute vec2 vertexTexCoord;
 
         uniform mat4 modelViewMatrix;
         uniform mat4 projectionMatrix;
@@ -33,6 +34,7 @@
         
         varying vec4 ecPosition; 
         varying vec3 ecNormal;
+        varying vec2 texCoord;
         
         void main() { 
         
@@ -40,6 +42,7 @@
             // for lighting calculations
             ecPosition   = modelViewMatrix * vec4(vertexPosition,1.0);
             ecNormal     = normalize(normalMatrix*vertexNormal);
+            texCoord	 = vertexTexCoord;
             
             // set the fragment position in clip coordinates
             gl_Position  = projectionMatrix * ecPosition;
@@ -53,8 +56,10 @@
         
         varying vec4  ecPosition; 
         varying vec3  ecNormal; 
-
+		varying vec2  texCoord;
+		
 		uniform int usePhong;
+		uniform sampler2D testWorldSampler;
 
         // Transformation
         uniform mat4  modelViewMatrix;
