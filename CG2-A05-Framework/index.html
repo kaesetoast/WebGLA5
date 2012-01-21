@@ -132,7 +132,7 @@
 				float ndotl = max( dot(n,-l), 0.0);
 
 				// diffuse contribution
-				vec3 diffuse = texture2D(testWorldSampler, texCoord).rgb;
+				vec3 diffuse = texture2D(testWorldSampler, texCoord).rgb * ndotl;
 
 				// half way vector between light and viewer
 				vec3 h = normalize(v-l);

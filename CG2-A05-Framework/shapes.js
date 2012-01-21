@@ -258,10 +258,8 @@ Torus = function(gl, radius, radius2, N, M, col1, col2) {
  */
 Sphere = function(gl, radius, transformationMatrix) {
 
-	var nrLongitudinalLines = 21;
-	// # Längengrade
-	var nrLatitudinalLines = nrLongitudinalLines * 2;
-	// # Breitengrade
+	var nrLatitudinalLines = 51;
+	var nrLongitudinalLines = nrLatitudinalLines * 2;
 
 	// Diese Methode "pusht" nach quadArray dimension viele Folgewerte von x.
 	// Im 3D also x, y und z.
@@ -272,7 +270,7 @@ Sphere = function(gl, radius, transformationMatrix) {
 	}
 	// Diese Methode scheibt in quadArray Vertices, die nacheinander immer Quads ergeben.
 	this.quads = function(longitude, latitude, dimension, quadArray, dataArray) {
-		var one = (longitude * (nrLatitudinalLines * dimension)) + latitude * dimension;
+		var one = (longitude * ((nrLatitudinalLines + 1) * dimension)) + latitude * dimension;
 		var two = one + nrLatitudinalLines * dimension;
 		var three = one + dimension;
 		var four = two + dimension;
@@ -290,24 +288,24 @@ Sphere = function(gl, radius, transformationMatrix) {
 	var vertexNormalDataXYZ = [];
 	var vertexTextureDataST = [];
 	for(var longitude = 0; longitude <= nrLongitudinalLines; longitude++) {
-		var alpha = (longitude * Math.PI) / nrLongitudinalLines;
+		var alpha = (longitude * 2 * Math.PI) / nrLongitudinalLines;
 		var sinAlpha = Math.sin(alpha);
 		var cosAlpha = Math.cos(alpha);
 
-		for(var latitude = 0; latitude < nrLatitudinalLines; latitude++) {
-			var beta = (latitude * 2 * Math.PI) / nrLatitudinalLines;
+		for(var latitude = 0; latitude <= nrLatitudinalLines; latitude++) {
+			var beta = (latitude * Math.PI) / nrLatitudinalLines;
 			var sinBeta = Math.sin(beta);
 			var cosBeta = Math.cos(beta);
 
 			var x = radius * sinBeta * cosAlpha;
-			var y = radius * cosBeta;
-			var z = radius * sinAlpha * sinBeta;
+			var y = radius * sinAlpha * sinBeta;
+			var z = radius * cosBeta;
 
 			var normal = vec3.create([x, y, z]);
 			normal = vec3.normalize(normal);
 
-			var s = 1 - (latitude / nrLatitudinalLines);
-			var t = 1 - (longitude / nrLongitudinalLines);
+			var s = longitude / nrLongitudinalLines + 0.25;
+			var t = 1 - latitude / nrLatitudinalLines;
 
 			vertexPositionDataXYZ.push(x);
 			vertexPositionDataXYZ.push(y);
