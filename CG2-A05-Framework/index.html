@@ -34,15 +34,14 @@
 
 			void main() {
 
-			// transform vertex position and normal into eye coordinates
-			// for lighting calculations
-			ecPosition   = modelViewMatrix * vec4(vertexPosition,1.0);
-			ecNormal     = normalize(normalMatrix*vertexNormal);
-			texCoord	 = vertexTexCoord;
+				// transform vertex position and normal into eye coordinates
+				// for lighting calculations
+				ecPosition = modelViewMatrix * vec4(vertexPosition,1.0);
+				ecNormal = normalize(normalMatrix*vertexNormal);
+				texCoord = vertexTexCoord;
 
-			// set the fragment position in clip coordinates
-			gl_Position  = projectionMatrix * ecPosition;
-
+				// set the fragment position in clip coordinates
+				gl_Position  = projectionMatrix * ecPosition;
 			}
 		</script>
 		<!-- fragment shader source code -->
@@ -65,19 +64,17 @@
 
 			// Material
 			struct Material {
-			vec3  kAmbient;
-			vec3  kDiffuse;
-			vec3  kSpecular;
-			float shininess;
+				vec3  kAmbient;
+				vec3  kDiffuse;
+				vec3  kSpecular;
+				float shininess;
 			};
 			uniform Material material;
 
 			// Light Source Data for a directional light
 			struct DirectionalLightSource {
-
-			vec3 direction;
-			vec3 color;
-
+				vec3 direction;
+				vec3 color;
 			} ;
 			uniform DirectionalLightSource light;
 
@@ -89,66 +86,64 @@
 			*/
 			vec3 blinnPhong(vec3 pos, vec3 n, vec3 v) {
 
-			// ambient part
-			vec3 ambient = material.kAmbient * ambientLight;
+				// ambient part
+				vec3 ambient = material.kAmbient * ambientLight;
 
-			// check viewing direction - is this back-facing?
-			float ndotv = dot(n,v);
-			if(ndotv<0.0)
-			return vec3(0,0,0); // backface
+				// check viewing direction - is this back-facing?
+				float ndotv = dot(n,v);
+				if(ndotv<0.0)
+					return vec3(0,0,0); // backface
 
-			// vector from light to current point
-			vec3 l = light.direction;
+				// vector from light to current point
+				vec3 l = light.direction;
 
-			// cos of angle between light and surface. 0 = light behind surface
-			float ndotl = max( dot(n,-l), 0.0);
+				// cos of angle between light and surface. 0 = light behind surface
+				float ndotl = max( dot(n,-l), 0.0);
 
-			// diffuse contribution
-			vec3 diffuse = material.kDiffuse * light.color * ndotl;
+				// diffuse contribution
+				vec3 diffuse = material.kDiffuse * light.color * ndotl;
 
-			// half way vector between light and viewer
-			vec3 h = normalize(v-l);
+				// half way vector between light and viewer
+				vec3 h = normalize(v-l);
 
-			// angle between half way vector and surface normal
-			float ndoth = dot(n,h);
+				// angle between half way vector and surface normal
+				float ndoth = dot(n,h);
 
-			// specular contribution
-			vec3 specular = material.kSpecular * light.color * pow(ndoth, material.shininess);
+				// specular contribution
+				vec3 specular = material.kSpecular * light.color * pow(ndoth, material.shininess);
 
-			// return sum of all contributions
-			return ambient + diffuse + specular;
-
+				// return sum of all contributions
+				return ambient + diffuse + specular;
 			}
 
 			vec3 illumWorld() {
-			return vec3(0,1,0);
+				return vec3(0,1,0);
 			}
 
 			void main() {
 
-			// normalize normal after projection
-			vec3 normalEC = normalize(ecNormal);
+				// normalize normal after projection
+				vec3 normalEC = normalize(ecNormal);
 
-			// do we use a perspective or an orthogonal projection matrix?
-			bool usePerspective = projectionMatrix[2][3] != 0.0;
+				// do we use a perspective or an orthogonal projection matrix?
+				bool usePerspective = projectionMatrix[2][3] != 0.0;
 
-			// for perspective mode, the viewing direction (in eye coords) points
-			// from the vertex to the origin (0,0,0) --> use -ecPosition as direction.
-			// for orthogonal mode, the viewing direction is simply (0,0,1)
-			vec3 viewdirEC = usePerspective? normalize(-ecPosition.xyz) : vec3(0,0,1);
+				// for perspective mode, the viewing direction (in eye coords) points
+				// from the vertex to the origin (0,0,0) --> use -ecPosition as direction.
+				// for orthogonal mode, the viewing direction is simply (0,0,1)
+				vec3 viewdirEC = usePerspective? normalize(-ecPosition.xyz) : vec3(0,0,1);
 
-			// calculate color using Blinn-Phong function
-			//vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+				// calculate color using Blinn-Phong function
+				// vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
 
-			vec3 color;
-			if(usePhong == 1) {
-			color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
-			} else {
-			color = illumWorld();
-			}
+				vec3 color;
+				if(usePhong == 1) {
+					color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
+				} else {
+					color = illumWorld();
+				}
 
-			gl_FragColor = vec4(color, 1.0);
-
+				gl_FragColor = vec4(color, 1.0);
 			}
 		</script>
 	</head>
