@@ -53,7 +53,9 @@
 			varying vec2  texCoord;
 
 			uniform int usePhong;
-			uniform sampler2D testWorldSampler;
+			uniform bool showLights;
+			uniform sampler2D daylightSampler;
+			uniform sampler2D nightSampler;
 
 			// Transformation
 			uniform mat4  modelViewMatrix;
@@ -129,10 +131,27 @@
 				vec3 l = light.direction;
 
 				// cos of angle between light and surface. 0 = light behind surface
-				float ndotl = max( dot(n,-l), 0.0);
+				float ndotl = dot(n,-l);
 
 				// diffuse contribution
-				vec3 diffuse = texture2D(testWorldSampler, texCoord).rgb * ndotl;
+				vec3 diffuse;
+				if(ndotl >= 0.0) {
+					diffuse = texture2D(daylightSampler, texCoord).rgb * ndotl;
+				} else if (showLights){
+					diffuse = texture2D(nightSampler, texCoord).rgb * -ndotl;
+				} else {
+					diffuse = material.kDiffuse * light.color * ndotl;
+				}
+				
+				// Zusatz-Aufgabe: Lineare Interpolation zwischen Tag und Nacht
+				// über den ganzen Erdball.
+				// Dass die Lichter hier unabhängig von showLights immernoch
+				// leuchten, ist absicht, damit man die Interpolation sieht.
+				float ratio = (ndotl + 1.0) / 2.0;
+				diffuse = diffuse + 0.25 * (
+					(texture2D(daylightSampler, texCoord).rgb * ratio) + 
+					(texture2D(nightSampler, texCoord).rgb * (1.0 - ratio))
+				);
 
 				// half way vector between light and viewer
 				vec3 h = normalize(v-l);

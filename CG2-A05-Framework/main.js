@@ -60,8 +60,9 @@ initScene = function() {
 	var program = this.getProgram();
 	var gl = this.getGL();
 
+	// Texturen
 	this.daylightTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
-	this.testWorldTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
+	this.nightTexture = new Texture2D(gl, "textures/earth_at_night_2048.jpg", this);
 
 	// directional sunlight, defined in world coordinates
 	// this object will be manipulated directly by a simulation object
@@ -78,7 +79,7 @@ initScene = function() {
 	this.earth = new Sphere(gl, 0.5, mat4.identity());
 
 	// material for the earth
-	this.earthMaterial = new Material([0.5, 0.5, 0.5], [0.0, 0.0, 0.6], [0.5, 0.5, 0.5], 1000);
+	this.earthMaterial = new Material([0.0, 0.0, 0.0], [0.0, 0.0, 0.6], [0.5, 0.5, 0.5], 1000);
 }
 /*
  drawScene()
@@ -104,7 +105,8 @@ drawScene = function() {
 	checkGLError(gl);
 
 	// set Sampler
-	this.testWorldTexture.makeActive(program, "testWorldSampler", 0);
+	this.daylightTexture.makeActive(program, "daylightSampler", 0);
+	this.nightTexture.makeActive(program, "nightSampler", 1);
 
 	// set projection matrix uniform shader variable
 	program.setUniform("projectionMatrix", "mat4", this.camera.eyeToClip(), true);
@@ -193,6 +195,8 @@ updateAnimationParams = function() {
 	// sunlight simulation speed
 	var sunSpeed = parseInt(f.elements["sunSpeed"].value);
 	theSunSimulation.setDegreesPerSecond(sunSpeed);
+
+	theScene.program.setUniform("showLights", "bool", theScene.showLights, true);
 
 	// do a redraw
 	theScene.draw();
