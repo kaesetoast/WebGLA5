@@ -63,6 +63,8 @@ initScene = function() {
 	// Texturen
 	this.daylightTexture = new Texture2D(gl, "textures/test_world_texture.gif", this);
 	this.nightTexture = new Texture2D(gl, "textures/earth_at_night_2048.jpg", this);
+	this.topographyTexture = new Texture2D(gl, "textures/earth_topography_4096.jpg", this);
+	this.cloudTexture = new Texture2D(gl, "textures/earth_clouds_2048.jpg", this);
 
 	// directional sunlight, defined in world coordinates
 	// this object will be manipulated directly by a simulation object
@@ -107,6 +109,8 @@ drawScene = function() {
 	// set Sampler
 	this.daylightTexture.makeActive(program, "daylightSampler", 0);
 	this.nightTexture.makeActive(program, "nightSampler", 1);
+	this.topographyTexture.makeActive(program, "topographySampler", 2);
+	this.cloudTexture.makeActive(program, "cloudSampler", 3);
 
 	// set projection matrix uniform shader variable
 	program.setUniform("projectionMatrix", "mat4", this.camera.eyeToClip(), true);
@@ -128,7 +132,7 @@ drawScene = function() {
 	this.sunlight.setUniforms(program, mv);
 
 	// set illuminatin function
-	program.setUniform("usePhong", "int", 1, true);
+	program.setUniform("usePhong", "bool", true, true);
 
 	// activate the material for rendering the equator
 	this.equatorMaterial.setUniforms(program, mv);
@@ -138,7 +142,7 @@ drawScene = function() {
 		this.equatorRing.shape.draw(program);
 
 	// set illuminatin function
-	program.setUniform("usePhong", "int", 0, true);
+	program.setUniform("usePhong", "bool", false, true);
 
 	// activate the material for rendering the earth
 	this.earthMaterial.setUniforms(program, mv);
@@ -197,6 +201,7 @@ updateAnimationParams = function() {
 	theSunSimulation.setDegreesPerSecond(sunSpeed);
 
 	theScene.program.setUniform("showLights", "bool", theScene.showLights, true);
+	theScene.program.setUniform("showClouds", "float", theScene.showClouds, true);
 
 	// do a redraw
 	theScene.draw();

@@ -52,10 +52,13 @@
 			varying vec3  ecNormal;
 			varying vec2  texCoord;
 
-			uniform int usePhong;
+			uniform bool usePhong;
 			uniform bool showLights;
+			uniform float showClouds;
 			uniform sampler2D daylightSampler;
 			uniform sampler2D nightSampler;
+			uniform sampler2D topographySampler;
+			uniform sampler2D cloudSampler;
 
 			// Transformation
 			uniform mat4  modelViewMatrix;
@@ -136,9 +139,17 @@
 				// diffuse contribution
 				vec3 diffuse;
 				if(ndotl >= 0.0) {
-					diffuse = texture2D(daylightSampler, texCoord).rgb * ndotl;
-				} else if (showLights){
-					diffuse = texture2D(nightSampler, texCoord).rgb * -ndotl;
+					diffuse = (
+						texture2D(daylightSampler, texCoord).rgb +
+						texture2D(cloudSampler, texCoord).rgb * showClouds) *
+						ndotl;
+					
+				} else if (showLights) {
+					diffuse = (
+						texture2D(nightSampler, texCoord).rgb -
+						texture2D(cloudSampler, texCoord).rgb * showClouds) *
+						-ndotl;
+					
 				} else {
 					diffuse = material.kDiffuse * light.color * ndotl;
 				}
@@ -148,10 +159,10 @@
 				// Dass die Lichter hier unabhängig von showLights immernoch
 				// leuchten, ist absicht, damit man die Interpolation sieht.
 				float ratio = (ndotl + 1.0) / 2.0;
-				diffuse = diffuse + 0.25 * (
-					(texture2D(daylightSampler, texCoord).rgb * ratio) + 
-					(texture2D(nightSampler, texCoord).rgb * (1.0 - ratio))
-				);
+				diffuse = diffuse + 0.25 * ((
+					texture2D(daylightSampler, texCoord).rgb * ratio) + 
+					(texture2D(nightSampler, texCoord).rgb * (1.0 - ratio)
+				));
 
 				// half way vector between light and viewer
 				vec3 h = normalize(v-l);
@@ -160,7 +171,11 @@
 				float ndoth = dot(n,h);
 
 				// specular contribution
-				vec3 specular = material.kSpecular * light.color * pow(ndoth, material.shininess);
+				vec3 specular = material.kSpecular * light.color * pow(ndoth, 10.0 / (
+					texture2D(topographySampler, texCoord).r *
+					texture2D(topographySampler, texCoord).g *
+					texture2D(topographySampler, texCoord).b
+				));
 
 				// return sum of all contributions
 				return ambient + diffuse + specular;
@@ -183,7 +198,7 @@
 				// vec3 color = blinnPhong( ecPosition.xyz, normalEC, viewdirEC );
 
 				vec3 color;
-				if(usePhong == 1) {
+				if(usePhong) {
 					color = blinnPhong(ecPosition.xyz, normalEC, viewdirEC);
 				} else {
 					color = illumWorld(ecPosition.xyz, normalEC, viewdirEC);
